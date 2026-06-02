@@ -25,16 +25,18 @@ def inicio():
 @app.post("/sensor")
 async def recibir_datos(datos: dict):
     try:
-        # Añadimos la fecha y hora actual automáticamente
-        datos["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Insertamos el JSON en MongoDB
+
+        # Solo genera fecha si no viene una fecha enviada
+        if "fecha" not in datos:
+            datos["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         resultado = collection.insert_one(datos)
-        
+
         return {
-            "status": "Procesado", 
+            "status": "Procesado",
             "id_db": str(resultado.inserted_id),
             "mensaje": "Dato guardado en Atlas"
         }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
