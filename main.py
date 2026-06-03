@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional
 
 app = FastAPI()
@@ -20,10 +20,7 @@ class SensorData(BaseModel):
     temperatura: int
     humedad: int
     dispositivo: str
-    fecha: Optional[str] = Field(default_ some_lambda_or_factory_here_or_handled_below)
-
-def obtener_fecha_actual():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    fecha: Optional[str] = None
 
 @app.get("/")
 def inicio():
@@ -34,8 +31,8 @@ async def recibir_datos(datos: SensorData):
     try:
         payload = datos.dict()
         
-        if not payload.get("fecha"):
-            payload["fecha"] = obtener_fecha_actual()
+        if payload["fecha"] is None or payload["fecha"] == "":
+            payload["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
         resultado = collection.insert_one(payload)
         
