@@ -24,17 +24,19 @@ def inicio():
 
 @app.post("/sensor")
 async def recibir_datos(datos: dict):
-    try:
 
-        # Solo genera fecha si no viene una fecha enviada
-        if "fecha" not in datos:
-            datos["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print("RECIBIDO:", datos)
 
-        resultado = collection.insert_one(datos)
+    if "fecha" not in datos:
+        datos["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print("SE GENERÓ FECHA AUTOMÁTICA")
 
-        return {
-            "status": "Procesado",
-            "id_db": str(resultado.inserted_id),
+    resultado = collection.insert_one(datos)
+
+    return {
+        "status": "Procesado",
+        "id_db": str(resultado.inserted_id)
+    }
             "mensaje": "Dato guardado en Atlas"
         }
 
