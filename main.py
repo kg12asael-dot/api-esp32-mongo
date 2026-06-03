@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from datetime import datetime
+from pydantic import BaseModel, Field
+from typing import Optional
 
 app = FastAPI()
 
@@ -14,30 +16,34 @@ try:
 except Exception as e:
     print(f"Error de conexión: {e}")
 
+class SensorData(BaseModel):
+    temperatura: int
+    humedad: int
+    dispositivo: str
+    fecha: Optional[str] = Field(default_ some_lambda_or_factory_here_or_handled_below)
+
+def obtener_fecha_actual():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 @app.get("/")
 def inicio():
     return {"mensaje": "API de Asael funcionando correctamente"}
 
 @app.post("/sensor")
-async def recibir_datos(datos: dict):
+async def recibir_datos(datos: SensorData):
     try:
-
-        print("DATOS RECIBIDOS:")
-        print(datos)
-
-        # Solo agrega fecha actual si no se envió una
-        if "fecha" not in datos or not datos["fecha"]:
-            datos["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print("SE GENERÓ FECHA AUTOMÁTICA")
-
-        resultado = collection.insert_one(datos)
-
+        payload = datos.dict()
+        
+        if not payload.get("fecha"):
+            payload["fecha"] = obtener_fecha_actual()
+            
+        resultado = collection.insert_one(payload)
+        
         return {
             "status": "Procesado",
             "id_db": str(resultado.inserted_id),
-            "fecha_guardada": datos["fecha"],
+            "fecha_guardada": payload["fecha"],
             "mensaje": "Dato guardado en Atlas"
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
